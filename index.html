@@ -1,0 +1,738 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ERP Tambo+</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: barra lateral de módulos + área de trabajo. En móvil la barra pasa a pestañas fijas arriba. */
+:root{
+  --bg:#f3f5f8; --surface:#ffffff; --surface2:#eef1f6; --line:#dce2ea; --line2:#c6cfdb;
+  --fg:#101b2b; --fg2:#455268; --fg3:#6b7a8f;
+  --accent:#1c5cab; --on-accent:#ffffff; --hero:#12294a;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100;
+  --good:#17794a; --warn:#a85f00; --crit:#c0312c;
+  --font:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e141d; --surface:#161e2a; --surface2:#1c2635; --line:#26323f; --line2:#35445a;
+    --fg:#e8edf4; --fg2:#b0bccd; --fg3:#8391a6;
+    --accent:#6da7ec; --on-accent:#08111d; --hero:#172a45;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500;
+    --good:#3fbf82; --warn:#e8a33a; --crit:#f0706b; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e141d; --surface:#161e2a; --surface2:#1c2635; --line:#26323f; --line2:#35445a;
+  --fg:#e8edf4; --fg2:#b0bccd; --fg3:#8391a6;
+  --accent:#6da7ec; --on-accent:#08111d; --hero:#172a45;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500;
+  --good:#3fbf82; --warn:#e8a33a; --crit:#f0706b; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:14px/1.5 var(--font);font-variant-numeric:tabular-nums}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--surface);z-index:30}
+h1,h2,h3,p{margin:0}
+h1{font-size:22px;font-weight:600;letter-spacing:-.01em;text-wrap:balance}
+h2{font-size:15px;font-weight:600}
+h3{font-size:13px;font-weight:600}
+a{color:var(--accent)}
+.app{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:100vh}
+.side{background:var(--surface);border-right:1px solid var(--line);padding:20px 12px;display:flex;flex-direction:column;gap:20px;position:sticky;top:0;align-self:start;height:100vh;padding-left:max(12px,env(safe-area-inset-left,0px))}
+.brand{display:flex;align-items:center;gap:10px;padding:0 8px}
+.brand b{font-size:16px;font-weight:600;letter-spacing:-.01em}
+.mark{width:28px;height:28px;border-radius:7px;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;font-weight:600;font-size:15px}
+.brand small{display:block;color:var(--fg3);font-size:11px;line-height:1.2}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav a{display:flex;flex-direction:column;padding:8px 10px;border-radius:7px;text-decoration:none;color:var(--fg2);font-weight:500;border:1px solid transparent}
+.nav a small{font-weight:400;color:var(--fg3);font-size:11.5px}
+.nav a:hover{background:var(--surface2)}
+.nav a[aria-current="page"]{background:var(--surface2);color:var(--fg);border-color:var(--line)}
+.nav a[aria-current="page"] span{color:var(--accent)}
+.side-foot{margin-top:auto;padding:0 8px;color:var(--fg3);font-size:11.5px;display:flex;flex-direction:column;gap:8px}
+main{padding:28px 32px 56px max(32px,env(safe-area-inset-left,0px));padding-right:max(32px,env(safe-area-inset-right,0px));max-width:1180px;width:100%;display:flex;flex-direction:column;gap:22px;min-width:0}
+.head{display:flex;flex-direction:column;gap:4px}
+.head p{color:var(--fg2);max-width:70ch}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0}
+.card>header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.card>header p{color:var(--fg3);font-size:12.5px}
+.row{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label,.lbl{font-size:11.5px;color:var(--fg3);font-weight:500;letter-spacing:.03em;text-transform:uppercase}
+input,select,button{font:inherit;color:inherit}
+input[type=number],input[type=text],input[type=date],select{background:var(--surface);border:1px solid var(--line2);border-radius:7px;padding:7px 9px;min-height:36px;width:100%;min-width:0}
+input[type=range]{width:100%;accent-color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{background:var(--accent);color:var(--on-accent);border:0;border-radius:7px;padding:8px 14px;font-weight:600;cursor:pointer;min-height:36px}
+.btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line2);font-weight:500}
+.btn.sm{padding:4px 10px;min-height:28px;font-size:12.5px}
+.btn:hover{filter:brightness(1.07)}
+.seg{display:inline-flex;border:1px solid var(--line2);border-radius:8px;overflow:hidden;background:var(--surface);flex-wrap:wrap}
+.seg button{background:transparent;border:0;padding:8px 14px;cursor:pointer;font-weight:500;color:var(--fg2);min-height:36px}
+.seg button+button{border-left:1px solid var(--line2)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.kpi{background:var(--surface);padding:14px 16px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpi .v{font-size:26px;font-weight:600;letter-spacing:-.02em;line-height:1.15}
+.kpi .v small{font-size:13px;color:var(--fg3);font-weight:400;margin-left:3px}
+.kpi .s{color:var(--fg2);font-size:12.5px}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%}
+th,td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{white-space:normal;font-size:11.5px;color:var(--fg3);font-weight:500;text-transform:uppercase;letter-spacing:.03em;background:var(--surface)}
+td.n,th.n{text-align:right}
+tr.grp td{background:var(--surface2);font-weight:600;border-bottom:1px solid var(--line)}
+tr.best td{background:color-mix(in srgb,var(--good) 9%,transparent)}
+td input{padding:4px 6px;min-height:30px}
+td input[type=number]{text-align:right;width:92px}
+td input.nm{width:200px}
+td input.ovd{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
+.tw td input[type=number]{width:62px;padding:4px 5px}
+.mono{font-family:var(--mono);font-size:12.5px}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:1px 9px;border-radius:999px;font-size:12px;font-weight:500;border:1px solid var(--line2);color:var(--fg2);white-space:nowrap}
+.pill::before{content:"●";font-size:8px}
+.pill.crit{color:var(--crit);border-color:color-mix(in srgb,var(--crit) 40%,transparent);background:color-mix(in srgb,var(--crit) 11%,transparent)}
+.pill.crit::before{content:"■"}
+.pill.warn{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 40%,transparent);background:color-mix(in srgb,var(--warn) 11%,transparent)}
+.pill.warn::before{content:"▲"}
+.pill.good{color:var(--good);border-color:color-mix(in srgb,var(--good) 40%,transparent);background:color-mix(in srgb,var(--good) 11%,transparent)}
+.pill.cls{min-width:30px;justify-content:center;color:var(--fg);font-weight:600}
+.pill.cls::before{display:none}
+.chip{display:inline-block;padding:0 7px;border-radius:5px;background:var(--surface2);border:1px solid var(--line);font-size:11.5px;font-weight:600;color:var(--fg2)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:6px;color:var(--fg2);font-size:12.5px}
+.legend i{display:inline-block;width:16px;height:0;border-top:3px solid;vertical-align:middle;margin-right:6px;border-radius:2px}
+.legend i.d{border-top-style:dashed}
+.legend i.sq{width:11px;height:11px;border:0;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.chart{position:relative;width:100%}
+.chart svg{display:block;touch-action:pan-y;overflow:visible}
+.grid-l{stroke:var(--line);stroke-width:1}
+.axis-l{stroke:var(--line2);stroke-width:1}
+.tick{fill:var(--fg3);font-size:11px;font-family:var(--font)}
+.dl{fill:var(--fg);font-size:12px;font-weight:600;font-family:var(--font)}
+.cross{stroke:var(--fg3);stroke-width:1;stroke-dasharray:3 3}
+.tt{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line2);border-radius:8px;padding:8px 10px;font-size:12.5px;box-shadow:0 4px 16px rgba(0,0,0,.14);z-index:5;min-width:150px;max-width:260px}
+.tt b{display:block;margin-bottom:3px;white-space:normal}
+.tt .r{display:flex;justify-content:space-between;gap:14px;color:var(--fg2)}
+.tt .r i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px}
+.tt .r span:last-child{color:var(--fg);font-weight:500}
+.note{color:var(--fg3);font-size:12.5px}
+.msg{border:1px solid var(--line2);border-left:4px solid var(--good);background:var(--surface);border-radius:8px;padding:10px 14px}
+.msg.err{border-left-color:var(--crit)}
+.formula{font-family:var(--mono);font-size:12.5px;color:var(--fg2);background:var(--surface2);border-radius:7px;padding:8px 10px;overflow-x:auto}
+.hbar{display:grid;grid-template-columns:64px minmax(0,1fr) 120px;gap:10px;align-items:center;margin:8px 0}
+.hbar .t{height:14px;background:var(--surface2);border-radius:4px;overflow:hidden}
+.hbar .t i{display:block;height:100%;border-radius:0 4px 4px 0;min-width:2px}
+.hbar b{font-weight:600}
+.cmpcell{display:flex;flex-direction:column;gap:2px;font-size:12.5px;white-space:normal;min-width:150px}
+.policy{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.policy div{border-top:3px solid;padding-top:8px}
+.policy p{color:var(--fg2);font-size:12.5px;margin-top:2px}
+.sp{width:120px;height:30px}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .side{position:sticky;top:env(safe-area-inset-top,0px);height:auto;flex-direction:row;align-items:center;padding:8px max(12px,env(safe-area-inset-right,0px)) 8px max(12px,env(safe-area-inset-left,0px));border-right:0;border-bottom:1px solid var(--line);gap:12px;z-index:20;overflow:hidden}
+  .brand small,.side-foot,.nav a small{display:none}
+  .brand{padding:0}
+  .nav{flex-direction:row;overflow-x:auto;gap:4px;scrollbar-width:none;min-width:0}
+  .nav a{white-space:nowrap;padding:7px 10px}
+  main{padding:18px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px))}
+  .grid2,.policy,.grid3{grid-template-columns:minmax(0,1fr)}
+  .hbar{grid-template-columns:48px minmax(0,1fr) 96px}
+}
+@media (prefers-reduced-motion:no-preference){.btn,.nav a{transition:background .15s,filter .15s}}
+
+/* Aspecto de sitio web: barra superior, portada, tarjetas de módulos y pie */
+.app{display:flex;flex-direction:column;min-height:100vh}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.top-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:24px;padding:10px max(32px,env(safe-area-inset-right,0px)) 10px max(32px,env(safe-area-inset-left,0px))}
+.top .nav{flex-direction:row;gap:2px;margin-left:auto;min-width:0}
+.top .nav a{flex-direction:row;padding:8px 13px;white-space:nowrap}
+.top .nav a small{display:none}
+.top .brand{padding:0}
+.top .brand small{display:block}
+main{margin:0 auto}
+.foot{border-top:1px solid var(--line);background:var(--surface);margin-top:auto}
+.foot-in{max-width:1180px;margin:0 auto;padding:18px max(32px,env(safe-area-inset-right,0px)) 18px max(32px,env(safe-area-inset-left,0px));display:flex;gap:16px;justify-content:space-between;align-items:center;flex-wrap:wrap;color:var(--fg3);font-size:12.5px}
+a.btn{text-decoration:none;display:inline-flex;align-items:center}
+.hero{background:var(--hero);color:#fff;border-radius:14px;padding:40px 36px;display:flex;flex-direction:column;gap:14px}
+.hero .eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#a9c4ea;font-weight:500}
+.hero h1{font-size:clamp(26px,4.2vw,40px);line-height:1.12;max-width:20ch;font-weight:600}
+.hero p{color:#d3deef;max-width:60ch;font-size:15px}
+.hero .btn{background:#fff;color:#12294a}
+.hero .btn.ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.45)}
+.mods{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.mods a{display:flex;flex-direction:column;gap:6px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:10px;text-decoration:none;color:var(--fg)}
+.mods a:hover{border-color:var(--accent)}
+.mods a b{font-size:14.5px}
+.mods a span{color:var(--fg2);font-size:12.5px;flex:1}
+.mods a em{font-style:normal;color:var(--accent);font-weight:600;font-size:12.5px}
+@media (max-width:860px){
+  .top-in{flex-wrap:wrap;gap:8px;padding:8px max(16px,env(safe-area-inset-right,0px)) 6px max(16px,env(safe-area-inset-left,0px))}
+  .top .nav{margin-left:0;width:100%;overflow-x:auto;scrollbar-width:none}
+  .foot-in{padding:16px max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px))}
+  .hero{padding:28px 20px}
+}
+</style>
+<style>body{margin:0}</style></head><body>
+
+<div class="app">
+  <header class="top">
+    <div class="top-in">
+      <div class="brand"><div class="mark">T+</div><div><b>ERP Tambo+</b><small>Proyecto académico · datos simulados</small></div></div>
+      <nav class="nav" id="nav" aria-label="Módulos"></nav>
+    </div>
+  </header>
+  <main id="view"></main>
+  <footer class="foot">
+    <div class="foot-in">
+      <span>Fuente: trabajo de Fundamentos de Logística y Operaciones, Universidad Científica del Sur. Los valores son simulados y referenciales.</span>
+      <button class="btn ghost sm" data-act="reset" id="reset-btn">Restaurar datos del trabajo</button>
+    </div>
+  </footer>
+</div>
+
+<script>
+/* ===================== DATOS BASE (del trabajo) ===================== */
+const MONTHS=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Set','Oct','Nov','Dic'];
+const CATS=['Bebidas','Snacks y golosinas','Abarrotes','Alimentos preparados'];
+const CAT_COLOR={'Bebidas':'var(--s1)','Snacks y golosinas':'var(--s2)','Abarrotes':'var(--s3)','Alimentos preparados':'var(--s4)'};
+const DEMAND0={
+ 'Bebidas':[18480,19096,18172,15400,13860,12320,13244,12936,13860,14784,15708,16940],
+ 'Snacks y golosinas':[12288,12032,13568,12544,13056,12288,12800,12288,12288,12800,13312,14336],
+ 'Abarrotes':[5760,5760,6120,5940,6000,5940,6120,5940,5820,6060,6180,6360],
+ 'Alimentos preparados':[7820,7650,8670,8670,8670,8670,8330,8840,8925,8925,8840,7990]
+};
+const PRODUCTS0=[
+ {name:'Inka Cola 650 ml',q:1050,p:3.79},{name:'Cerveza Pilsen (pack x6)',q:90,p:32.90},{name:'Volt',q:700,p:1.50},
+ {name:'Inka Chips 135 g',q:50,p:8.90},{name:'Cigarros Lucky',q:30,p:16.00},{name:'Chocolates Sublime',q:120,p:3.00},
+ {name:'Galletas Oreo 36 g',q:120,p:1.80},{name:'Papel Suave x 4 un.',q:25,p:5.90},{name:'Desodorante Secret',q:10,p:18.90},
+ {name:'Detergente 730 g',q:17,p:9.99}
+];
+const METHODS={ma:'Promedio móvil',ses:'Suavizamiento exponencial',reg:'Regresión lineal'};
+const SKUS=[
+ {id:'inka',name:'Inka Cola 650 ml',pre:'INK',vida:180},
+ {id:'cerv',name:'Cerveza Pilsen (pack x6)',pre:'CER',vida:150},
+ {id:'chips',name:'Inka Chips 135 g',pre:'CHP',vida:60},
+ {id:'sand',name:'Sándwich de pollo',pre:'SAN',vida:3},
+ {id:'ensa',name:'Ensalada fresca',pre:'ENS',vida:4},
+ {id:'post',name:'Postre tres leches',pre:'POS',vida:5},
+ {id:'papel',name:'Papel Suave x 4 un.',pre:'PAP',vida:null}
+];
+const WH_INFO={
+ FIFO:{t:'Primero en entrar, primero en salir',d:'Sale el lote que ingresó antes. Sirve para abarrotes y productos con vencimiento largo y parecido entre lotes.',c:'var(--s1)'},
+ FEFO:{t:'Primero en vencer, primero en salir',d:'Sale el lote con vencimiento más cercano, aunque haya llegado después. Es el método para sándwiches, ensaladas, postres y bebidas con fecha.',c:'var(--s3)'}
+};
+
+/* ===================== UTILIDADES ===================== */
+const $=s=>document.querySelector(s);
+const fmt=(n,d=0)=>Number(n).toLocaleString('es-PE',{minimumFractionDigits:d,maximumFractionDigits:d});
+const money=n=>'S/ '+fmt(n,2);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const sum=a=>a.reduce((x,y)=>x+y,0), avg=a=>a.length?sum(a)/a.length:0;
+const pad=n=>String(n).padStart(2,'0');
+const TODAY=(()=>{const d=new Date();d.setHours(0,0,0,0);return d})();
+const iso=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const addDays=n=>{const d=new Date(TODAY);d.setDate(d.getDate()+n);return iso(d)};
+const daysTo=s=>s?Math.round((new Date(s+'T00:00:00')-TODAY)/864e5):null;
+const fdate=s=>s?s.slice(8,10)+'/'+s.slice(5,7)+'/'+s.slice(2,4):'—';
+const skuOf=id=>SKUS.find(s=>s.id===id);
+
+/* ===================== ESTADO ===================== */
+const KEY='tambo-erp-v1';
+function seedLots(){
+  let id=1;const L=[];
+  const add=(sku,ing,ven,qty,ubic)=>{const s=skuOf(sku);const ds=addDays(ing);L.push({id:id++,sku,code:s.pre+'-'+ds.slice(2).replace(/-/g,''),ingreso:ds,vence:ven==null?null:addDays(ven),qty,ubic})};
+  add('inka',-20,160,300,'A-01-1');add('inka',-10,120,420,'A-01-2');add('inka',-2,200,500,'A-02-1');
+  add('cerv',-14,150,36,'B-01-1');add('cerv',-5,170,54,'B-01-2');
+  add('chips',-30,45,40,'C-02-1');add('chips',-12,75,60,'C-02-2');add('chips',-3,20,35,'C-02-3');
+  add('sand',-4,-1,6,'F-01-0');add('sand',-2,1,18,'F-01-1');add('sand',-1,3,24,'F-01-2');add('sand',0,2,20,'F-01-3');
+  add('ensa',-1,2,15,'F-02-1');add('ensa',0,4,12,'F-02-2');
+  add('post',-3,0,10,'F-03-1');add('post',-1,4,14,'F-03-2');
+  add('papel',-60,null,25,'D-01-1');add('papel',-20,null,40,'D-01-2');
+  return L;
+}
+function seedKardex(lots){return lots.map(l=>({ts:new Date(l.ingreso+'T08:00:00').getTime()+l.id*60000,tipo:'Ingreso',sku:l.sku,lote:l.code,qty:l.qty,metodo:''}))}
+function defaults(){
+  const lots=seedLots();
+  return {
+    demand:JSON.parse(JSON.stringify(DEMAND0)),
+    fc:{cat:'Bebidas',method:'ses',n:3,alpha:0.3},
+    prods:PRODUCTS0.map(p=>({...p})),
+    abc:{a:80,b:95},
+    rep:{prod:'Inka Cola 650 ml',monthly:1050,days:30,lead:2,z:1.65,varPct:20,S:20,H:2},
+    wh:{method:'FEFO',filter:'ALL',lots,kardex:seedKardex(lots),seq:100},
+    ui:{edit:false,inSku:'sand',inQty:20,inVence:addDays(3),inUbic:'F-01-4',outSku:'sand',outQty:30},
+    sim:{d:40,freq:3,lmin:4,lmax:9,seed:7},
+    ov:{}
+  };
+}
+function load(){
+  try{const raw=localStorage.getItem(KEY);if(raw){const s=JSON.parse(raw);const d=defaults();return {...d,...s,wh:{...d.wh,...s.wh},ui:{...d.ui,...s.ui}}}}catch(e){}
+  return defaults();
+}
+let state=load();
+if(!['FIFO','FEFO'].includes(state.wh.method)){state.wh.method='FEFO';}
+
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+let flash=null, resetArm=false;
+
+/* ===================== PRONÓSTICO ===================== */
+function series(cat){return cat==='Total'?MONTHS.map((_,i)=>sum(CATS.map(c=>state.demand[c][i]))):state.demand[cat].map(Number)}
+function regress(d){
+  const n=d.length,xs=d.map((_,i)=>i+1),mx=avg(xs),my=avg(d);
+  let nu=0,de=0;xs.forEach((x,i)=>{nu+=(x-mx)*(d[i]-my);de+=(x-mx)**2});
+  const b=de?nu/de:0,a=my-b*mx;return {a,b};
+}
+function forecast(d,method,p){
+  const n=d.length,f=Array(n).fill(null);let next,start;
+  if(method==='ma'){const k=p.n;start=k;for(let t=k;t<n;t++)f[t]=avg(d.slice(t-k,t));next=avg(d.slice(-k))}
+  else if(method==='ses'){const a=p.alpha;start=1;f[0]=d[0];for(let t=1;t<n;t++)f[t]=f[t-1]+a*(d[t-1]-f[t-1]);next=f[n-1]+a*(d[n-1]-f[n-1])}
+  else{const {a,b}=regress(d);start=0;for(let t=0;t<n;t++)f[t]=a+b*(t+1);next=a+b*(n+1)}
+  const errs=[];for(let t=start;t<n;t++)if(f[t]!=null)errs.push([d[t]-f[t],Math.abs(d[t]-f[t])/d[t]]);
+  return {f,next,start,mad:avg(errs.map(e=>e[1]*0+Math.abs(e[0]))),mape:avg(errs.map(e=>e[1]))*100};
+}
+const fcParams=()=>({n:state.fc.n,alpha:state.fc.alpha});
+
+/* ===================== PARETO / ABC ===================== */
+function paretoRows(){
+  const rows=state.prods.map((p,i)=>({...p,i,venta:p.q*p.p})).sort((a,b)=>b.venta-a.venta);
+  const tot=sum(rows.map(r=>r.venta))||1;let cum=0;
+  rows.forEach((r,k)=>{r.pct=r.venta/tot*100;cum+=r.pct;r.cum=cum;r.cls=(k===0||cum<=state.abc.a+0.005)?'A':(cum<=state.abc.b+0.005?'B':'C')});
+  return {rows,tot};
+}
+const CLS_COLOR={A:'var(--s1)',B:'var(--s2)',C:'var(--s3)'};
+
+/* ===================== REPOSICIÓN ===================== */
+function effOf(i){
+  const r=state.rep,o=(state.ov&&state.ov[i])||{},p=state.prods[i]||{q:r.monthly};
+  return {monthly:o.monthly??p.q,lead:o.lead??r.lead,varPct:o.varPct??r.varPct,S:o.S??r.S,H:o.H??r.H};
+}
+function replen(e){
+  const r=state.rep,M=e.monthly,L=e.lead,d=M/r.days,sd=e.varPct/100*d;
+  const ss=Math.ceil(r.z*sd*Math.sqrt(L)),rop=Math.ceil(d*L+ss);
+  const D=M*12,eoq=Math.max(1,Math.round(Math.sqrt(2*D*e.S/Math.max(e.H,1e-4)))),N=D/eoq;
+  const interval=N>0?(r.days*12)/N:0,cost=D/eoq*e.S+eoq/2*e.H;
+  return {d,sd,ss,rop,D,eoq,N,interval,cost};
+}
+function sawtooth(R,e,days=60){
+  const out=[];let inv=R.eoq+R.ss,pending=null;
+  for(let t=0;t<=days;t++){
+    if(pending===t){inv+=R.eoq;pending=null}
+    out.push(inv);
+    inv=Math.max(0,inv-R.d);
+    if(inv<=R.rop&&pending==null)pending=t+Math.max(1,Math.round(e.lead));
+  }
+  return out;
+}
+
+/* ===================== ALMACÉN ===================== */
+function sortLots(lots,m){
+  const a=lots.slice();
+  if(m==='FIFO')a.sort((x,y)=>x.ingreso.localeCompare(y.ingreso)||x.id-y.id);
+  else a.sort((x,y)=>(x.vence||'9999').localeCompare(y.vence||'9999')||x.ingreso.localeCompare(y.ingreso)||x.id-y.id);
+  return a;
+}
+const sellable=l=>l.qty>0&&(l.vence==null||daysTo(l.vence)>=0);
+function plan(sku,qty,m){
+  const picks=[];let need=qty;
+  for(const l of sortLots(state.wh.lots.filter(l=>l.sku===sku&&sellable(l)),m)){
+    if(need<=0)break;const take=Math.min(l.qty,need);picks.push({lot:l,take});need-=take;
+  }
+  return {picks,short:need};
+}
+function leftMinDays(sku,picks){
+  const used=new Map(picks.map(p=>[p.lot.id,p.take]));
+  const ds=state.wh.lots.filter(l=>l.sku===sku&&sellable(l)&&l.vence&&l.qty-(used.get(l.id)||0)>0).map(l=>daysTo(l.vence));
+  return ds.length?Math.min(...ds):null;
+}
+function expPill(l){
+  const d=daysTo(l.vence);
+  if(d==null)return '<span class="pill">Sin vencimiento</span>';
+  if(d<0)return `<span class="pill crit">Vencido hace ${-d} d</span>`;
+  if(d<=3)return `<span class="pill crit">${d===0?'Vence hoy':'Vence en '+d+' d'}</span>`;
+  if(d<=7)return `<span class="pill warn">Vence en ${d} d</span>`;
+  return `<span class="pill good">${d} d</span>`;
+}
+function rng(seed){let s=(seed*2654435761)>>>0;return()=>{s=(Math.imul(s,1664525)+1013904223)>>>0;return s/4294967296}}
+function simulate(p){
+  const R=rng(p.seed),N=30,lotSize=Math.ceil(p.d*p.freq*1.1),lives=[],dem=[];
+  for(let t=0;t<N;t++){lives.push(p.lmin+Math.floor(R()*(p.lmax-p.lmin+1)));dem.push(Math.round(p.d*(0.75+0.5*R())))}
+  const out={};
+  for(const m of ['FIFO','FEFO']){
+    let lots=[],id=0,sold=0,waste=0,short=0;
+    for(let t=0;t<N;t++){
+      if(t%p.freq===0)lots.push({id:id++,ing:t,ven:t+lives[t],q:lotSize});
+      lots=lots.filter(l=>{if(l.ven<=t&&l.q>0){waste+=l.q;return false}return l.q>0});
+      const ord=lots.slice().sort((a,b)=>m==='FIFO'?a.ing-b.ing:a.ven-b.ven||a.ing-b.ing);
+      let need=dem[t];for(const l of ord){if(need<=0)break;const k=Math.min(l.q,need);l.q-=k;need-=k;sold+=k}
+      short+=need;
+    }
+    const supply=lotSize*Math.ceil(N/p.freq);
+    out[m]={sold,waste,short,pct:waste/supply*100};
+  }
+  return {out,lotSize};
+}
+
+/* ===================== GRÁFICOS (SVG propio) ===================== */
+let charts=[];
+function niceTicks(lo,hi,k=5){
+  const range=(hi-lo)||Math.abs(hi)||1,s0=range/(k-1),mag=Math.pow(10,Math.floor(Math.log10(s0))),nm=s0/mag;
+  const step=(nm<=1?1:nm<=2?2:nm<=2.5?2.5:nm<=5?5:10)*mag;
+  const a=Math.floor(lo/step)*step,b=Math.ceil(hi/step)*step,t=[];
+  for(let v=a;v<=b+step/2;v+=step)t.push(+v.toFixed(6));return t;
+}
+function tipPos(el,tip,x){
+  const w=tip.offsetWidth,W=el.clientWidth;tip.style.left=Math.max(0,Math.min(W-w,x+14>W-w?x-w-14:x+14))+'px';tip.style.top='8px';
+}
+function drawLine(el,o){
+  const W=Math.max(280,el.clientWidth),H=o.h||300,small=W<520;
+  const m={l:small?48:60,r:small?18:26,t:26,b:30},iw=W-m.l-m.r,ih=H-m.t-m.b,n=o.labels.length;
+  const vals=o.series.flatMap(s=>s.values.filter(v=>v!=null));
+  const ticks=niceTicks(Math.min(...vals),Math.max(...vals),5),y0=ticks[0],y1=ticks[ticks.length-1];
+  const X=i=>m.l+(n===1?0:i*iw/(n-1)),Y=v=>m.t+ih-(v-y0)/((y1-y0)||1)*ih;
+  const every=o.xEvery||(small&&n>8?2:1);
+  let s=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.aria||'Gráfico de líneas')}">`;
+  ticks.forEach(v=>{s+=`<line class="grid-l" x1="${m.l}" x2="${W-m.r}" y1="${Y(v)}" y2="${Y(v)}"/><text class="tick" x="${m.l-8}" y="${Y(v)+4}" text-anchor="end">${fmt(v)}</text>`});
+  o.labels.forEach((l,i)=>{if(i%every===0||i===n-1)s+=`<text class="tick" x="${X(i)}" y="${H-8}" text-anchor="middle">${l}</text>`});
+  o.series.forEach(se=>{
+    let d='',pen=false;se.values.forEach((v,i)=>{if(v==null){pen=false;return}d+=(pen?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1);pen=true});
+    s+=`<path d="${d}" fill="none" stroke="${se.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" ${se.dash?'stroke-dasharray="6 4"':''}/>`;
+    if(se.dots)se.values.forEach((v,i)=>{if(v!=null&&i!==o.nextIdx)s+=`<circle cx="${X(i)}" cy="${Y(v)}" r="3.5" fill="${se.color}" stroke="var(--surface)" stroke-width="2"/>`});
+  });
+  if(o.nextIdx!=null){const se=o.series.find(x=>x.next);if(se){const v=se.values[o.nextIdx];
+    s+=`<circle cx="${X(o.nextIdx)}" cy="${Y(v)}" r="6.5" fill="${se.color}" stroke="var(--surface)" stroke-width="2"/><text class="dl" x="${Math.min(X(o.nextIdx),W-m.r)}" y="${Y(v)-12}" text-anchor="end">${fmt(v)}</text>`}}
+  s+=`<line class="cross" id="cx" y1="${m.t}" y2="${m.t+ih}" style="display:none"/><rect x="${m.l}" y="${m.t}" width="${iw}" height="${ih}" fill="transparent" id="hit"/></svg><div class="tt" style="display:none"></div>`;
+  el.innerHTML=s;
+  const svg=el.querySelector('svg'),tip=el.querySelector('.tt'),cx=el.querySelector('#cx');
+  const move=e=>{
+    const r=svg.getBoundingClientRect();let i=Math.round((e.clientX-r.left-m.l)/(iw/((n-1)||1)));i=Math.max(0,Math.min(n-1,i));
+    cx.setAttribute('x1',X(i));cx.setAttribute('x2',X(i));cx.style.display='';
+    tip.innerHTML=`<b>${o.tipLabel?o.tipLabel(i):o.labels[i]}</b>`+o.series.filter(se=>se.values[i]!=null).map(se=>`<div class="r"><span><i style="background:${se.color}"></i>${esc(se.name)}</span><span>${fmt(se.values[i],o.dec||0)}</span></div>`).join('');
+    tip.style.display='';tipPos(el,tip,X(i));
+  };
+  const leave=()=>{cx.style.display='none';tip.style.display='none'};
+  svg.addEventListener('pointermove',move);svg.addEventListener('pointerdown',move);svg.addEventListener('pointerleave',leave);
+}
+function drawPareto(el,rows){
+  const W=Math.max(300,el.clientWidth),small=W<560,H=small?330:360;
+  const m={l:44,r:18,t:22,b:small?96:92},iw=W-m.l-m.r,ih=H-m.t-m.b,n=rows.length,bw=iw/n;
+  const Y=v=>m.t+ih-v/100*ih;
+  let s=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Diagrama de Pareto: porcentaje de venta por producto y porcentaje acumulado">`;
+  [0,20,40,60,80,100].forEach(v=>{s+=`<line class="grid-l" x1="${m.l}" x2="${W-m.r}" y1="${Y(v)}" y2="${Y(v)}"/><text class="tick" x="${m.l-8}" y="${Y(v)+4}" text-anchor="end">${v}%</text>`});
+  [[state.abc.a,'Corte A'],[state.abc.b,'Corte B']].forEach(([v,l])=>{s+=`<line x1="${m.l}" x2="${W-m.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--fg3)" stroke-width="1" stroke-dasharray="4 4"/><text class="tick" x="${m.l+4}" y="${Y(v)-4}">${l} ${v}%</text>`});
+  rows.forEach((r,i)=>{
+    const x=m.l+i*bw+bw*0.18,w=bw*0.64,h=r.pct/100*ih,y=Y(r.pct);
+    s+=`<path d="M${x} ${m.t+ih}V${y+4}Q${x} ${y} ${x+4} ${y}H${x+w-4}Q${x+w} ${y} ${x+w} ${y+4}V${m.t+ih}Z" fill="${CLS_COLOR[r.cls]}" data-i="${i}" class="bar"/>`;
+    if(bw>=44&&r.pct>=2.5)s+=h>=24?`<text class="tick" x="${x+w/2}" y="${y+15}" text-anchor="middle" style="fill:#fff;font-weight:600">${fmt(r.pct,1)}</text>`:`<text class="tick" x="${x+w/2}" y="${y-5}" text-anchor="middle" style="fill:var(--fg2)">${fmt(r.pct,1)}</text>`;
+    const lab=r.name.length>16?r.name.slice(0,15)+'…':r.name;
+    s+=`<text class="tick" transform="translate(${x+w/2+4} ${m.t+ih+14}) rotate(-38)" text-anchor="end">${esc(lab)}</text>`;
+  });
+  let d='';rows.forEach((r,i)=>{d+=(i?'L':'M')+(m.l+i*bw+bw/2).toFixed(1)+' '+Y(r.cum).toFixed(1)});
+  s+=`<path d="${d}" fill="none" stroke="var(--fg)" stroke-width="2" stroke-linejoin="round"/>`;
+  rows.forEach((r,i)=>{s+=`<circle cx="${m.l+i*bw+bw/2}" cy="${Y(r.cum)}" r="3.5" fill="var(--fg)" stroke="var(--surface)" stroke-width="2"/>`});
+  s+=`<line class="axis-l" x1="${m.l}" x2="${W-m.r}" y1="${m.t+ih}" y2="${m.t+ih}"/></svg><div class="tt" style="display:none"></div>`;
+  el.innerHTML=s;
+  const tip=el.querySelector('.tt'),svg=el.querySelector('svg');
+  const show=(i,e)=>{const r=rows[i];tip.innerHTML=`<b>${esc(r.name)}</b><div class="r"><span>Clase</span><span>${r.cls}</span></div><div class="r"><span>Venta</span><span>${money(r.venta)}</span></div><div class="r"><span>% de la venta</span><span>${fmt(r.pct,2)}%</span></div><div class="r"><span>% acumulado</span><span>${fmt(r.cum,2)}%</span></div>`;tip.style.display='';tipPos(el,tip,m.l+i*bw+bw/2)};
+  svg.addEventListener('pointermove',e=>{const b=svg.getBoundingClientRect();const i=Math.floor((e.clientX-b.left-m.l)/bw);if(i>=0&&i<n)show(i);else tip.style.display='none'});
+  svg.addEventListener('pointerdown',e=>{const b=svg.getBoundingClientRect();const i=Math.floor((e.clientX-b.left-m.l)/bw);if(i>=0&&i<n)show(i)});
+  svg.addEventListener('pointerleave',()=>tip.style.display='none');
+}
+function spark(v,color){
+  const w=120,h=30,lo=Math.min(...v),hi=Math.max(...v),X=i=>3+i*(w-6)/(v.length-1),Y=x=>h-4-(x-lo)/((hi-lo)||1)*(h-8);
+  let d='';v.forEach((x,i)=>d+=(i?'L':'M')+X(i).toFixed(1)+' '+Y(x).toFixed(1));
+  return `<svg class="sp" viewBox="0 0 ${w} ${h}" aria-hidden="true"><path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round"/><circle cx="${X(v.length-1)}" cy="${Y(v[v.length-1])}" r="3" fill="${color}"/></svg>`;
+}
+
+/* ===================== VISTAS ===================== */
+const bind=(id,path,val,type='number',extra='')=>`<input id="${id}" data-bind="${path}" type="${type}" value="${esc(val)}" ${extra}>`;
+const sel=(id,path,val,opts)=>`<select id="${id}" data-bind="${path}">${opts.map(([v,t])=>`<option value="${esc(v)}" ${String(v)===String(val)?'selected':''}>${esc(t)}</option>`).join('')}</select>`;
+const legend=items=>`<div class="legend">${items.map(i=>`<span><i class="${i.dash?'d':''} ${i.sq?'sq':''}" style="${i.sq?'background':'border-color'}:${i.color}"></i>${esc(i.name)}</span>`).join('')}</div>`;
+
+const VIEWS={};
+VIEWS.resumen=()=>{
+  const m=state.fc.method,P=fcParams();
+  const tot=forecast(series('Total'),m,P).next,hist=avg(series('Total'));
+  const {rows}=paretoRows(),nA=rows.filter(r=>r.cls==='A'),pA=sum(nA.map(r=>r.pct));
+  const R=replen(effOf(Math.max(0,state.prods.findIndex(p=>p.name===state.rep.prod))));
+  const risk=state.wh.lots.filter(l=>l.qty>0&&l.vence&&daysTo(l.vence)>=0&&daysTo(l.vence)<=7),exp=state.wh.lots.filter(l=>l.qty>0&&l.vence&&daysTo(l.vence)<0);
+  const alerts=state.wh.lots.filter(l=>l.qty>0&&l.vence&&daysTo(l.vence)<=7).sort((a,b)=>daysTo(a.vence)-daysTo(b.vence));
+  return `
+  <section class="hero"><span class="eyebrow">Fundamentos de Logística y Operaciones</span><h1>Gestión logística de una tienda Tambo+</h1><p>Pronóstico de la demanda, clasificación ABC, reposición y almacén con FIFO y FEFO, sobre los datos simulados de una tienda promedio. Todo se recalcula cuando cambias un dato.</p><div class="row" style="margin-top:6px"><a class="btn" href="#pronostico">Ver pronóstico</a><a class="btn ghost" href="#almacen">Ir al almacén</a></div></section>
+  <div class="kpis">
+    <div class="kpi"><span class="lbl">Demanda del próximo mes</span><span class="v">${fmt(tot)}<small>u</small></span><span class="s">${METHODS[m]} · ${fmt((tot/hist-1)*100,1)}% vs promedio mensual</span></div>
+    <div class="kpi"><span class="lbl">Productos clase A</span><span class="v">${nA.length}<small>de ${rows.length}</small></span><span class="s">Concentran ${fmt(pA,1)}% de la venta</span></div>
+    <div class="kpi"><span class="lbl">Por vencer en 7 días</span><span class="v">${fmt(sum(risk.map(l=>l.qty)))}<small>u</small></span><span class="s">${fmt(sum(exp.map(l=>l.qty)))} u vencidas por dar de baja</span></div>
+    <div class="kpi"><span class="lbl">Punto de pedido · ${esc(state.rep.prod)}</span><span class="v">${fmt(R.rop)}<small>u</small></span><span class="s">Lote económico ${fmt(R.eoq)} u · cada ${fmt(R.interval)} días</span></div>
+  </div>
+  <div class="mods">${[['pronostico','Pronóstico de demanda','Promedio móvil, suavizamiento exponencial y regresión.'],['pareto','Pareto y ABC','Qué productos concentran la venta y cómo controlarlos.'],['reposicion','Reposición','Stock de seguridad, punto de pedido y EOQ de cada producto.'],['almacen','Almacén','Lotes, vencimientos, despachos y mermas con FIFO y FEFO.']].map(([k,t,d])=>`<a href="#${k}"><b>${t}</b><span>${d}</span><em>Abrir →</em></a>`).join('')}</div>
+  <section class="card"><header><h2>Pronóstico por categoría</h2><p>Método: ${METHODS[m]} <a href="#pronostico">Cambiar</a></p></header>
+    <div class="tw"><table><thead><tr><th>Categoría</th><th class="n">Promedio mensual</th><th class="n">Próximo mes</th><th class="n">Variación</th><th>Año simulado</th></tr></thead><tbody>
+    ${CATS.map(c=>{const d=series(c),nx=forecast(d,m,P).next,h=avg(d),v=(nx/h-1)*100;
+      return `<tr><td><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${CAT_COLOR[c]};margin-right:8px"></i>${c}</td><td class="n">${fmt(h)}</td><td class="n"><b>${fmt(nx)}</b></td><td class="n">${v>0?'+':''}${fmt(v,1)}%</td><td>${spark(d,CAT_COLOR[c])}</td></tr>`}).join('')}
+    </tbody></table></div></section>
+  <section class="card"><header><h2>Alertas de vencimiento</h2><p><a href="#almacen">Ir al almacén</a></p></header>
+    ${alerts.length?`<div class="tw"><table><thead><tr><th>Producto</th><th>Lote</th><th class="n">Cantidad</th><th>Ubicación</th><th>Estado</th></tr></thead><tbody>${alerts.slice(0,8).map(l=>`<tr><td>${esc(skuOf(l.sku).name)}</td><td class="mono">${l.code}</td><td class="n">${fmt(l.qty)}</td><td class="mono">${esc(l.ubic)}</td><td>${expPill(l)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="note">No hay lotes vencidos ni por vencer esta semana.</p>'}
+  </section>
+  <p class="note">Los valores de demanda, precios, costos y lotes son simulados, tomados del trabajo de Fundamentos de Logística y Operaciones. No son cifras reales de Tambo+.</p>`;
+};
+
+VIEWS.pronostico=()=>{
+  const F=state.fc,cats=['Total',...CATS],d=series(F.cat),P=fcParams();
+  const res=forecast(d,F.method,P),all=Object.keys(METHODS).map(k=>({k,...forecast(d,k,P)}));
+  const best=all.reduce((a,b)=>b.mape<a.mape?b:a);
+  const {b}=regress(d);
+  const labels=[...MONTHS,'Próx.'];
+  charts.push(()=>drawLine($('#ch-fc'),{labels,h:310,nextIdx:12,aria:'Demanda real y pronóstico por mes',
+    tipLabel:i=>i===12?'Próximo periodo':MONTHS[i],
+    series:[{name:'Demanda real',color:'var(--s1)',values:[...d,null],dots:true},{name:METHODS[F.method],color:'var(--s2)',values:[...res.f,res.next],dash:true,next:true}]}));
+  const param=F.method==='ma'?`<div class="field" style="width:130px"><label for="fc-n">Periodos (n)</label>${sel('fc-n','fc.n',F.n,[2,3,4,5,6].map(v=>[v,v+' meses']))}</div>`
+    :F.method==='ses'?`<div class="field" style="width:200px"><label for="fc-a">Constante α = ${fmt(F.alpha,2)}</label><input id="fc-a" data-bind="fc.alpha" type="range" min="0.1" max="0.9" step="0.05" value="${F.alpha}"></div>`:'';
+  const formula=F.method==='ma'?`F(t) = promedio de los ${F.n} meses anteriores`:F.method==='ses'?`F(t) = F(t−1) + α · (D(t−1) − F(t−1)),  α = ${fmt(F.alpha,2)}`:`F(x) = ${fmt(regress(d).a,1)} ${regress(d).b<0?'−':'+'} ${fmt(Math.abs(regress(d).b),2)} · x   (x = número de mes)`;
+  return `
+  <div class="head"><h1>Pronóstico de la demanda</h1><p>Tres métodos del capítulo 2 aplicados a la demanda mensual simulada. Cambia la categoría, el método o los datos y el pronóstico del próximo periodo se actualiza.</p></div>
+  <section class="card">
+    <div class="row">
+      <div class="field" style="width:220px"><label for="fc-cat">Categoría</label>${sel('fc-cat','fc.cat',F.cat,cats.map(c=>[c,c==='Total'?'Total (4 categorías)':c]))}</div>
+      <div class="field"><span class="lbl">Método</span><div class="seg" role="group" aria-label="Método">${Object.entries(METHODS).map(([k,t])=>`<button data-act="fc-method" data-v="${k}" aria-pressed="${F.method===k}">${t}</button>`).join('')}</div></div>
+      ${param}
+    </div>
+  </section>
+  <div class="kpis">
+    <div class="kpi"><span class="lbl">Pronóstico próximo periodo</span><span class="v">${fmt(res.next)}<small>u</small></span><span class="s">${esc(F.cat)} · ${METHODS[F.method]}</span></div>
+    <div class="kpi"><span class="lbl">Error absoluto medio (MAD)</span><span class="v">${fmt(res.mad)}<small>u</small></span><span class="s">Desvío promedio por mes</span></div>
+    <div class="kpi"><span class="lbl">Error porcentual (MAPE)</span><span class="v">${fmt(res.mape,1)}<small>%</small></span><span class="s">Menor es mejor</span></div>
+    <div class="kpi"><span class="lbl">Tendencia lineal</span><span class="v">${b>0?'+':''}${fmt(b,0)}<small>u / mes</small></span><span class="s">${b<0?'Demanda en baja':'Demanda en alza'} durante el año</span></div>
+  </div>
+  <section class="card"><header><h2>Demanda real y pronóstico</h2><p class="mono">${formula}</p></header>
+    ${legend([{name:'Demanda real',color:'var(--s1)'},{name:METHODS[F.method],color:'var(--s2)',dash:true}])}
+    <div class="chart" id="ch-fc"></div>
+    <p class="note" style="margin-top:6px">El punto grande es el pronóstico del próximo periodo. El error se calcula sobre los meses donde el método genera pronóstico.</p>
+  </section>
+  <div class="grid2">
+    <section class="card"><header><h2>Comparación de métodos</h2><p>${esc(F.cat)}</p></header>
+      <div class="tw"><table><thead><tr><th>Método</th><th class="n">Próximo</th><th class="n">MAD</th><th class="n">MAPE</th></tr></thead><tbody>
+      ${all.map(r=>`<tr class="${r.k===best.k?'best':''}"><td>${METHODS[r.k]} ${r.k===best.k?'<span class="pill good">Menor error</span>':''}</td><td class="n">${fmt(r.next)}</td><td class="n">${fmt(r.mad)}</td><td class="n">${fmt(r.mape,1)}%</td></tr>`).join('')}
+      </tbody></table></div>
+      <p class="note" style="margin-top:8px">La regresión se mide dentro de la muestra, por eso no es una comparación del todo justa con los otros dos.</p></section>
+    <section class="card"><header><h2>Detalle mensual</h2><p>${METHODS[F.method]}</p></header>
+      <div class="tw" style="max-height:330px;overflow-y:auto"><table><thead><tr><th>Mes</th><th class="n">Real</th><th class="n">Pronóstico</th><th class="n">Error</th></tr></thead><tbody>
+      ${MONTHS.map((mo,i)=>`<tr><td>${mo}</td><td class="n">${fmt(d[i])}</td><td class="n">${res.f[i]==null?'—':fmt(res.f[i],1)}</td><td class="n">${res.f[i]==null||i<res.start?'—':fmt(d[i]-res.f[i],1)}</td></tr>`).join('')}
+      <tr class="grp"><td>Próx.</td><td class="n">—</td><td class="n">${fmt(res.next,1)}</td><td class="n">—</td></tr></tbody></table></div></section>
+  </div>
+  <section class="card"><header><h2>Datos de demanda</h2><p><button class="btn ghost sm" data-act="toggle-edit">${state.ui.edit?'Ocultar edición':'Editar datos'}</button></p></header>
+    ${state.ui.edit?`<div class="tw"><table><thead><tr><th>Mes</th>${CATS.map(c=>`<th class="n">${c}</th>`).join('')}</tr></thead><tbody>
+      ${MONTHS.map((mo,i)=>`<tr><td>${mo}</td>${CATS.map((c,j)=>`<td class="n">${bind(`dm-${j}-${i}`,`demand.${c}.${i}`,state.demand[c][i],'number','min="0" step="1"')}</td>`).join('')}</tr>`).join('')}
+      </tbody></table></div><p style="margin-top:10px"><button class="btn ghost sm" data-act="restore-demand">Restaurar datos del trabajo</button></p>`
+    :'<p class="note">Pulsa «Editar datos» para reemplazar la demanda simulada por tus propias cifras mensuales (unidades por categoría).</p>'}
+  </section>`;
+};
+
+VIEWS.pareto=()=>{
+  const {rows,tot}=paretoRows(),n=rows.length;
+  const cls=['A','B','C'].map(c=>{const r=rows.filter(x=>x.cls===c);return {c,n:r.length,pp:r.length/n*100,ps:sum(r.map(x=>x.pct))}});
+  charts.push(()=>drawPareto($('#ch-pa'),rows));
+  const pol={A:'Revisión diaria, stock de seguridad alto, pedidos frecuentes y conteo cíclico semanal.',B:'Revisión semanal, stock de seguridad moderado y pedidos periódicos.',C:'Revisión mensual, lotes grandes poco frecuentes y stock mínimo.'};
+  return `
+  <div class="head"><h1>Pareto y clasificación ABC</h1><p>Ordena los productos por venta en soles y los clasifica según el porcentaje acumulado. Edita cantidades y precios, o agrega productos, y el diagrama se recalcula.</p></div>
+  <div class="kpis">
+    ${cls.map(x=>`<div class="kpi"><span class="lbl">Clase ${x.c}</span><span class="v">${x.n}<small>productos · ${fmt(x.pp,0)}%</small></span><span class="s">${fmt(x.ps,1)}% de la venta</span></div>`).join('')}
+    <div class="kpi"><span class="lbl">Venta total</span><span class="v">${money(tot)}</span><span class="s">${n} productos</span></div>
+  </div>
+  <section class="card"><header><h2>Diagrama de Pareto</h2><p>${cls[0].n} de ${n} productos (${fmt(cls[0].pp,0)}%) concentran ${fmt(cls[0].ps,1)}% de la venta</p></header>
+    ${legend([{name:'Clase A',color:'var(--s1)',sq:1},{name:'Clase B',color:'var(--s2)',sq:1},{name:'Clase C',color:'var(--s3)',sq:1},{name:'% acumulado',color:'var(--fg)'}])}
+    <div class="chart" id="ch-pa"></div></section>
+  <div class="row" style="align-items:flex-end">
+    <div class="field" style="width:150px"><label for="abc-a">Corte clase A (%)</label>${bind('abc-a','abc.a',state.abc.a,'number','min="50" max="95" step="1"')}</div>
+    <div class="field" style="width:150px"><label for="abc-b">Corte clase B (%)</label>${bind('abc-b','abc.b',state.abc.b,'number','min="60" max="99" step="1"')}</div>
+  </div>
+  <section class="card"><header><h2>Productos</h2><p><button class="btn sm" data-act="add-prod">Agregar producto</button></p></header>
+    <div class="tw"><table><thead><tr><th>#</th><th>Producto</th><th class="n">Cantidad vendida</th><th class="n">Precio (S/)</th><th class="n">Venta (S/)</th><th class="n">%</th><th class="n">% acum.</th><th>Clase</th><th></th></tr></thead><tbody>
+    ${rows.map((r,k)=>`<tr><td>${k+1}</td><td>${bind(`pn-${r.i}`,`prods.${r.i}.name`,r.name,'text','class="nm"')}</td><td class="n">${bind(`pq-${r.i}`,`prods.${r.i}.q`,r.q,'number','min="0" step="1"')}</td><td class="n">${bind(`pp-${r.i}`,`prods.${r.i}.p`,r.p,'number','min="0" step="0.01"')}</td><td class="n">${fmt(r.venta,2)}</td><td class="n">${fmt(r.pct,2)}%</td><td class="n">${fmt(r.cum,2)}%</td><td><span class="pill cls" style="border-color:${CLS_COLOR[r.cls]}">${r.cls}</span></td><td>${n>2?`<button class="btn ghost sm" data-act="del-prod" data-i="${r.i}" aria-label="Quitar ${esc(r.name)}">Quitar</button>`:''}</td></tr>`).join('')}
+    </tbody></table></div>
+    <p style="margin-top:10px"><button class="btn ghost sm" data-act="restore-prods">Restaurar datos del trabajo</button></p></section>
+  <section class="card"><header><h2>Política sugerida por clase</h2></header>
+    <div class="policy">${['A','B','C'].map(c=>`<div style="border-color:${CLS_COLOR[c]}"><h3>Clase ${c}</h3><p>${pol[c]}</p></div>`).join('')}</div></section>`;
+};
+
+VIEWS.reposicion=()=>{
+  const r=state.rep,rows=paretoRows().rows;
+  let si=state.prods.findIndex(p=>p.name===r.prod);if(si<0)si=rows[0].i;
+  const e=effOf(si),R=replen(e),saw=sawtooth(R,e),sp=state.prods[si];
+  charts.push(()=>drawLine($('#ch-sw'),{labels:saw.map((_,i)=>i),xEvery:10,h:280,aria:'Inventario en 60 días con reposición',tipLabel:i=>'Día '+i,
+    series:[{name:'Inventario',color:'var(--s1)',values:saw},{name:'Punto de pedido',color:'var(--s2)',dash:true,values:saw.map(()=>R.rop)},{name:'Stock de seguridad',color:'var(--s3)',dash:true,values:saw.map(()=>R.ss)}]}));
+  const ov=(i,f,val,min,step)=>{const has=state.ov&&state.ov[i]&&state.ov[i][f]!=null;return bind(`ov-${i}-${f}`,`ov.${i}.${f}`,val,'number',`min="${min}" step="${step}" ${has?'class="ovd" title="Valor propio de este producto"':''}`)};
+  return `
+  <div class="head"><h1>Reposición: stock de seguridad y lote económico</h1><p>Calcula cuánto pedir y cuándo pedir cada producto. Elige un producto para ver su detalle, y cambia los datos de cualquiera directamente en la tabla.</p></div>
+  <section class="card"><header><h2>Supuestos</h2><p>El tiempo, Z, variabilidad, S y H se aplican a todos los productos, salvo los que cambies en la tabla</p></header>
+    <div class="grid3" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">
+      <div class="field"><label for="rp-prod">Producto</label>${sel('rp-prod','rep.prod',sp.name,state.prods.map(p=>[p.name,p.name]))}</div>
+      <div class="field"><label for="rp-m">Demanda mensual (u)</label>${bind('rp-m',`ov.${si}.monthly`,e.monthly,'number','min="1"')}</div>
+      <div class="field"><label for="rp-days">Días por mes</label>${bind('rp-days','rep.days',r.days,'number','min="1" max="31"')}</div>
+      <div class="field"><label for="rp-l">Tiempo de reposición (días)</label>${bind('rp-l','rep.lead',r.lead,'number','min="1"')}</div>
+      <div class="field"><label for="rp-z">Valor Z (95% ≈ 1,65)</label>${bind('rp-z','rep.z',r.z,'number','min="0" step="0.01"')}</div>
+      <div class="field"><label for="rp-v">Variabilidad diaria (%)</label>${bind('rp-v','rep.varPct',r.varPct,'number','min="0" max="100"')}</div>
+      <div class="field"><label for="rp-s">Costo por pedido S (S/)</label>${bind('rp-s','rep.S',r.S,'number','min="0.01" step="0.01"')}</div>
+      <div class="field"><label for="rp-h">Almacenamiento H (S/ u año)</label>${bind('rp-h','rep.H',r.H,'number','min="0.01" step="0.01"')}</div>
+    </div></section>
+  <div class="kpis">
+    <div class="kpi"><span class="lbl">Stock de seguridad · ${esc(sp.name)}</span><span class="v">${fmt(R.ss)}<small>u</small></span><span class="s">Z · σ · √L = ${fmt(r.z,2)} · ${fmt(R.sd,1)} · √${e.lead}</span></div>
+    <div class="kpi"><span class="lbl">Punto de pedido</span><span class="v">${fmt(R.rop)}<small>u</small></span><span class="s">${fmt(R.d,1)} u/día × ${e.lead} d + seguridad</span></div>
+    <div class="kpi"><span class="lbl">Lote económico (EOQ)</span><span class="v">${fmt(R.eoq)}<small>u</small></span><span class="s">√(2 · ${fmt(R.D)} · ${e.S} / ${e.H})</span></div>
+    <div class="kpi"><span class="lbl">Pedidos por año</span><span class="v">${fmt(R.N)}</span><span class="s">Uno cada ${fmt(R.interval)} días</span></div>
+    <div class="kpi"><span class="lbl">Costo anual de inventario</span><span class="v">${money(R.cost)}</span><span class="s">Pedir + almacenar</span></div>
+  </div>
+  <section class="card"><header><h2>Todos los productos</h2><p><button class="btn ghost sm" data-act="ov-reset">Quitar cambios de la tabla</button></p></header>
+    <div class="tw"><table><thead><tr><th>Producto</th><th>Clase</th><th class="n">Demanda mensual</th><th class="n">Reposición (días)</th><th class="n">Variab. (%)</th><th class="n">Costo pedido S</th><th class="n">Almacenar H</th><th class="n">Stock de seguridad</th><th class="n">Punto de pedido</th><th class="n">EOQ</th><th class="n">Pedidos / año</th><th class="n">Cada (días)</th><th class="n">Costo anual (S/)</th></tr></thead><tbody>
+    ${rows.map(p=>{const q=effOf(p.i),x=replen(q);return `<tr class="${p.i===si?'best':''}"><td>${esc(p.name)}</td><td><span class="pill cls" style="border-color:${CLS_COLOR[p.cls]}">${p.cls}</span></td><td class="n">${ov(p.i,'monthly',q.monthly,1,1)}</td><td class="n">${ov(p.i,'lead',q.lead,1,1)}</td><td class="n">${ov(p.i,'varPct',q.varPct,0,1)}</td><td class="n">${ov(p.i,'S',q.S,0.01,0.01)}</td><td class="n">${ov(p.i,'H',q.H,0.01,0.01)}</td><td class="n">${fmt(x.ss)}</td><td class="n"><b>${fmt(x.rop)}</b></td><td class="n"><b>${fmt(x.eoq)}</b></td><td class="n">${fmt(x.N,1)}</td><td class="n">${fmt(x.interval)}</td><td class="n">${fmt(x.cost,2)}</td></tr>`}).join('')}
+    </tbody></table></div>
+    <p class="note" style="margin-top:8px">Las casillas con borde de color tienen un valor propio de ese producto. La demanda mensual de aquí solo cambia este cálculo; para cambiar las ventas del Pareto, edítalas en ese módulo. La fila resaltada es la del producto elegido.</p></section>
+  <section class="card"><header><h2>Cómo se mueve el inventario en 60 días</h2><p>${esc(sp.name)} · se pide un lote EOQ cuando el inventario toca el punto de pedido</p></header>
+    ${legend([{name:'Inventario',color:'var(--s1)'},{name:'Punto de pedido',color:'var(--s2)',dash:true},{name:'Stock de seguridad',color:'var(--s3)',dash:true}])}
+    <div class="chart" id="ch-sw"></div></section>`;
+};
+
+VIEWS.almacen=()=>{
+  const W=state.wh,u=state.ui,M=W.method;
+  const rank=new Map();
+  SKUS.forEach(s=>sortLots(W.lots.filter(l=>l.sku===s.id&&sellable(l)),M).forEach((l,i)=>rank.set(l.id,i+1)));
+  const skus=SKUS.filter(s=>W.filter==='ALL'||W.filter===s.id);
+  const pv=['FIFO','FEFO'].map(m=>{const p=plan(u.outSku,u.outQty,m);return {m,...p,left:leftMinDays(u.outSku,p.picks)}});
+  const bestLeft=Math.max(...pv.map(x=>x.left==null?-1:x.left));
+  const S=simulate(state.sim);
+  const msg=flash?`<div class="msg ${flash.err?'err':''}">${flash.html}</div>`:'';
+  const kd=W.kardex.slice().sort((a,b)=>b.ts-a.ts).slice(0,12);
+  const expiredN=sum(W.lots.filter(l=>l.qty>0&&l.vence&&daysTo(l.vence)<0).map(l=>l.qty));
+  const maxW=Math.max(...['FIFO','FEFO'].map(m=>S.out[m].waste),1);
+  return `
+  <div class="head"><h1>Almacén</h1><p>Stock por lote con fecha de ingreso y vencimiento. El método elegido decide qué lote sale primero en cada despacho.</p></div>
+  <section class="card">
+    <div class="row"><div class="field"><span class="lbl">Método de salida</span><div class="seg" role="group" aria-label="Método de salida">${['FIFO','FEFO'].map(m=>`<button data-act="wh-method" data-v="${m}" aria-pressed="${M===m}">${m}</button>`).join('')}</div></div>
+      <div class="field" style="width:230px"><label for="wh-f">Producto</label>${sel('wh-f','wh.filter',W.filter,[['ALL','Todos los productos'],...SKUS.map(s=>[s.id,s.name])])}</div></div>
+    <p style="margin-top:12px"><b style="color:var(--fg)">${M}: ${WH_INFO[M].t}.</b> <span style="color:var(--fg2)">${WH_INFO[M].d}</span></p>
+  </section>
+  ${msg}
+  <section class="card"><header><h2>Stock por lote</h2><p>La columna «Sale» muestra el orden de despacho con ${M}${expiredN?` · ${fmt(expiredN)} u vencidas <button class="btn sm" data-act="baja">Dar de baja</button>`:''}</p></header>
+    <div class="tw"><table><thead><tr><th>Lote</th><th>Ingreso</th><th>Vencimiento</th><th>Estado</th><th class="n">Cantidad</th><th>Ubicación</th><th class="n">Sale</th></tr></thead><tbody>
+    ${skus.map(s=>{const ls=sortLots(W.lots.filter(l=>l.sku===s.id&&l.qty>0),M);const rec=s.vida!=null&&s.vida<=10?'FEFO':s.vida==null?'FIFO':'FEFO';
+      return `<tr class="grp"><td colspan="7">${esc(s.name)} · ${fmt(sum(ls.map(l=>l.qty)))} u <span class="chip" style="margin-left:6px">Recomendado: ${rec}</span></td></tr>`+
+      (ls.length?ls.map(l=>`<tr><td class="mono">${l.code}</td><td>${fdate(l.ingreso)}</td><td>${fdate(l.vence)}</td><td>${expPill(l)}</td><td class="n">${fmt(l.qty)}</td><td class="mono">${esc(l.ubic)}</td><td class="n">${rank.has(l.id)?`<span class="pill cls" style="border-color:${WH_INFO[M].c}">${rank.get(l.id)}°</span>`:'<span class="note">Bloqueado</span>'}</td></tr>`).join(''):'<tr><td colspan="7" class="note">Sin stock</td></tr>')}).join('')}
+    </tbody></table></div></section>
+  <div class="grid2">
+    <section class="card"><header><h2>Registrar salida</h2><p>Se despacha con ${M}</p></header>
+      <div class="row"><div class="field" style="flex:1;min-width:170px"><label for="o-sku">Producto</label>${sel('o-sku','ui.outSku',u.outSku,SKUS.map(s=>[s.id,s.name]))}</div>
+      <div class="field" style="width:110px"><label for="o-q">Cantidad</label>${bind('o-q','ui.outQty',u.outQty,'number','min="1" step="1"')}</div>
+      <button class="btn" data-act="salida">Despachar</button></div>
+      <h3 style="margin:16px 0 6px">Vista previa: qué lote saldría con cada método</h3>
+      <div class="tw"><table><thead><tr><th>Método</th><th>Lotes que salen</th><th>Vencimiento más próximo que queda</th></tr></thead><tbody>
+      ${pv.map(x=>`<tr class="${x.m===M?'best':''}"><td><b>${x.m}</b></td><td><div class="cmpcell">${x.picks.length?x.picks.map(p=>`<span><span class="mono">${p.lot.code}</span> × ${fmt(p.take)}${p.lot.vence?' · vence '+fdate(p.lot.vence):''}</span>`).join(''):'<span class="note">Sin stock vendible</span>'}${x.short>0?`<span style="color:var(--crit)">Faltan ${fmt(x.short)} u</span>`:''}</div></td><td>${x.left==null?'—':(x.left+' d')+(x.left===bestLeft&&bestLeft>=0&&pv.some(y=>y.left!==x.left)?' <span class="pill good">Mejor</span>':'')}</td></tr>`).join('')}
+      </tbody></table></div></section>
+    <section class="card"><header><h2>Registrar ingreso</h2><p>Entra como un lote nuevo</p></header>
+      <div class="grid2" style="gap:12px">
+        <div class="field"><label for="i-sku">Producto</label>${sel('i-sku','ui.inSku',u.inSku,SKUS.map(s=>[s.id,s.name]))}</div>
+        <div class="field"><label for="i-q">Cantidad</label>${bind('i-q','ui.inQty',u.inQty,'number','min="1" step="1"')}</div>
+        <div class="field"><label for="i-v">Vencimiento</label>${bind('i-v','ui.inVence',u.inVence||'','date')}</div>
+        <div class="field"><label for="i-u">Ubicación</label>${bind('i-u','ui.inUbic',u.inUbic,'text')}</div>
+      </div>
+      <p style="margin-top:12px"><button class="btn" data-act="ingreso">Registrar ingreso</button></p>
+      <p class="note" style="margin-top:8px">Si el producto no vence, deja la fecha vacía. El lote se codifica con la fecha de hoy.</p></section>
+  </div>
+  <section class="card"><header><h2>Simulación de mermas a 30 días</h2><p>Mismos lotes y misma demanda para ambos métodos</p></header>
+    <div class="grid3" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));margin-bottom:12px">
+      <div class="field"><label for="s-d">Demanda diaria (u)</label>${bind('s-d','sim.d',state.sim.d,'number','min="1"')}</div>
+      <div class="field"><label for="s-f">Llega lote cada (días)</label>${bind('s-f','sim.freq',state.sim.freq,'number','min="1" max="10"')}</div>
+      <div class="field"><label for="s-a">Vida útil mín. (días)</label>${bind('s-a','sim.lmin',state.sim.lmin,'number','min="1"')}</div>
+      <div class="field"><label for="s-b">Vida útil máx. (días)</label>${bind('s-b','sim.lmax',state.sim.lmax,'number','min="1"')}</div>
+      <div class="field" style="justify-content:flex-end"><button class="btn ghost" data-act="new-sim">Otra combinación de lotes</button></div>
+    </div>
+    <p class="note" style="margin-bottom:8px">Cada lote de ${fmt(S.lotSize)} u llega con una vida útil distinta. Cuando el lote que llegó después vence antes, FEFO lo vende primero y evita la merma.</p>
+    ${['FIFO','FEFO'].map(m=>`<div class="hbar"><b>${m}</b><div class="t"><i style="width:${S.out[m].waste/maxW*100}%;background:${WH_INFO[m].c}"></i></div><span><b>${fmt(S.out[m].waste)} u</b> mermadas</span></div>`).join('')}
+    <div class="tw" style="margin-top:10px"><table><thead><tr><th>Método</th><th class="n">Vendido</th><th class="n">Merma</th><th class="n">% merma</th><th class="n">Faltante</th></tr></thead><tbody>
+    ${['FIFO','FEFO'].map(m=>{const o=S.out[m];const minW=Math.min(...['FIFO','FEFO'].map(k=>S.out[k].waste));return `<tr class="${o.waste===minW?'best':''}"><td><b>${m}</b> ${o.waste===minW?'<span class="pill good">Menor merma</span>':''}</td><td class="n">${fmt(o.sold)}</td><td class="n">${fmt(o.waste)}</td><td class="n">${fmt(o.pct,1)}%</td><td class="n">${fmt(o.short)}</td></tr>`}).join('')}
+    </tbody></table></div></section>
+  <section class="card"><header><h2>Kardex de movimientos</h2><p>Últimos ${kd.length}</p></header>
+    <div class="tw"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Producto</th><th>Lote</th><th class="n">Cantidad</th><th>Método</th></tr></thead><tbody>
+    ${kd.map(k=>`<tr><td>${new Date(k.ts).toLocaleString('es-PE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td><span class="pill ${k.tipo==='Merma'?'crit':k.tipo==='Ingreso'?'good':''}">${k.tipo}</span></td><td>${esc(skuOf(k.sku).name)}</td><td class="mono">${k.lote}</td><td class="n">${k.tipo==='Ingreso'?'+':'−'}${fmt(k.qty)}</td><td>${['FIFO','FEFO'].includes(k.metodo)?k.metodo:(k.metodo?'Histórico':'—')}</td></tr>`).join('')}
+    </tbody></table></div></section>`;
+};
+
+/* ===================== ACCIONES ===================== */
+const ACTS={
+  'fc-method':t=>{state.fc.method=t.dataset.v},
+  'toggle-edit':()=>{state.ui.edit=!state.ui.edit},
+  'restore-demand':()=>{state.demand=JSON.parse(JSON.stringify(DEMAND0))},
+  'restore-prods':()=>{state.prods=PRODUCTS0.map(p=>({...p}));state.ov={}},
+  'add-prod':()=>{state.prods.push({name:'Producto nuevo',q:10,p:5})},
+  'del-prod':t=>{const i=+t.dataset.i;state.prods.splice(i,1);const n={};Object.entries(state.ov||{}).forEach(([k,v])=>{k=+k;if(k<i)n[k]=v;else if(k>i)n[k-1]=v});state.ov=n},
+  'ov-reset':()=>{state.ov={}},
+  'wh-method':t=>{state.wh.method=t.dataset.v;flash=null},
+  'new-sim':()=>{state.sim.seed=(state.sim.seed*31+17)%100000},
+  'baja':()=>{
+    let n=0;state.wh.lots.filter(l=>l.qty>0&&l.vence&&daysTo(l.vence)<0).forEach(l=>{state.wh.kardex.push({ts:Date.now()+n++,tipo:'Merma',sku:l.sku,lote:l.code,qty:l.qty,metodo:''});l.qty=0});
+    state.wh.lots=state.wh.lots.filter(l=>l.qty>0);flash={html:'Lotes vencidos dados de baja y registrados como merma en el kardex.'};
+  },
+  'salida':()=>{
+    const u=state.ui,q=Math.floor(+u.outQty),m=state.wh.method;
+    if(!(q>0)){flash={err:1,html:'Ingresa una cantidad mayor que cero.'};return}
+    const p=plan(u.outSku,q,m);
+    if(p.short>0){flash={err:1,html:`Stock vendible insuficiente: faltan ${fmt(p.short)} u. Los lotes vencidos no se despachan.`};return}
+    p.picks.forEach((x,i)=>{x.lot.qty-=x.take;state.wh.kardex.push({ts:Date.now()+i,tipo:'Salida',sku:u.outSku,lote:x.lot.code,qty:x.take,metodo:m})});
+    state.wh.lots=state.wh.lots.filter(l=>l.qty>0);
+    flash={html:`Despachadas ${fmt(q)} u de ${esc(skuOf(u.outSku).name)} con ${m}: ${p.picks.map(x=>`<span class="mono">${x.lot.code}</span> × ${fmt(x.take)}`).join(', ')}.`};
+  },
+  'ingreso':()=>{
+    const u=state.ui,q=Math.floor(+u.inQty);
+    if(!(q>0)){flash={err:1,html:'Ingresa una cantidad mayor que cero.'};return}
+    const s=skuOf(u.inSku),code=s.pre+'-'+iso(TODAY).slice(2).replace(/-/g,'')+'-'+(state.wh.seq%100);
+    state.wh.lots.push({id:state.wh.seq++,sku:u.inSku,code,ingreso:iso(TODAY),vence:u.inVence||null,qty:q,ubic:u.inUbic||'—'});
+    state.wh.kardex.push({ts:Date.now(),tipo:'Ingreso',sku:u.inSku,lote:code,qty:q,metodo:''});
+    flash={html:`Ingreso registrado: lote <span class="mono">${code}</span> con ${fmt(q)} u de ${esc(s.name)}.`};
+  },
+  'reset':()=>{
+    if(!resetArm){resetArm=true;return}
+    resetArm=false;state=defaults();flash=null;
+  }
+};
+const HOOKS={
+  'ui.inSku':()=>{const s=skuOf(state.ui.inSku);state.ui.inVence=s.vida==null?'':addDays(s.vida)}
+};
+function setPath(path,val){
+  const k=path.split('.');let o=state;for(let i=0;i<k.length-1;i++)o=o[k[i]]||(o[k[i]]={});o[k[k.length-1]]=val;
+}
+
+/* ===================== RENDER ===================== */
+const ROUTES=[['resumen','Resumen','Indicadores clave'],['pronostico','Pronóstico','Demanda por categoría'],['pareto','Pareto / ABC','Clasificación de productos'],['reposicion','Reposición','Stock de seguridad y EOQ'],['almacen','Almacén','FIFO · FEFO']];
+function route(){const h=location.hash.replace('#','');return VIEWS[h]?h:'resumen'}
+function render(){
+  const ae=document.activeElement,id=ae&&ae.id;let ss=null,se=null;try{ss=ae.selectionStart;se=ae.selectionEnd}catch(e){}
+  const r=route();charts=[];
+  $('#nav').innerHTML=ROUTES.map(([k,t,s])=>`<a href="#${k}" ${k===r?'aria-current="page"':''}><span>${t}</span><small>${s}</small></a>`).join('');
+  $('#view').innerHTML=VIEWS[r]();
+  $('#reset-btn').textContent=resetArm?'¿Seguro? Pulsa otra vez para borrar tus cambios':'Restaurar datos del trabajo';
+  charts.forEach(f=>f());
+  if(id){const n=document.getElementById(id);if(n&&n!==document.activeElement){n.focus({preventScroll:true});if(ss!=null)try{n.setSelectionRange(ss,se)}catch(e){}}}
+}
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-act]');if(!t)return;
+  const a=t.dataset.act;if(a!=='reset')resetArm=false;
+  ACTS[a]&&ACTS[a](t);save();render();
+});
+document.addEventListener('input',e=>{
+  const t=e.target;if(!t.dataset||!t.dataset.bind)return;
+  let v=t.value;
+  if(t.type==='number'||t.type==='range'){v=parseFloat(v);if(!isFinite(v))return}
+  if(t.dataset.bind==='fc.n')v=Math.round(v);
+  setPath(t.dataset.bind,v);if(HOOKS[t.dataset.bind])HOOKS[t.dataset.bind]();
+  save();render();
+});
+window.addEventListener('hashchange',()=>{flash=null;resetArm=false;render();window.scrollTo(0,0)});
+let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>charts.forEach(f=>f()),120)});
+render();
+</script>
+
+</body></html>
